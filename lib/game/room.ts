@@ -27,6 +27,8 @@ const key = (nick: string) => nick.toLocaleLowerCase();
 
 /** Authoritative state of one room. Every public method validates the caller,
  *  applies one transition, then pushes a personalised snapshot to everyone. */
+export const CHAT_PER_SEC = 10;
+
 export class Room {
   players: Player[] = [];
   hostId = "";
@@ -43,6 +45,7 @@ export class Room {
   private options: string[] = [];
   private correctIndex = -1;
   private shownAt = 0;
+  private chatTimes = new Map<string, number[]>();
   private answers = new Map<string, { index: number; ms: number }>();
   private turnPoints: Record<string, number> = {};
 
@@ -180,7 +183,12 @@ export class Room {
   chat(id: string, text: string) {
     const p = this.find(id);
     if (!p) return;
-    this.lastActive = Date.now();
+    const now = Date.now();
+    // ponytail: sliding window per player, in-memory; fine at 8 players/room
+    const recent = (this.chatTimes.get(id) ?? []).filter((t) => now - t < 1000);
+    if (recent.length >= CHAT_PER_SEC) throw new GameError("Slow down.");
+    this.chatTimes.set(id, [...recent, now]);
+    this.lastActive = now;
     const msg: ServerMsg = {
       type: "chat",
       from: p.nickname,

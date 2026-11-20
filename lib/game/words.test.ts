@@ -52,3 +52,42 @@ describe("buildBallot", () => {
     expect(m).not.toBe("Schmetterling");
   });
 });
+
+describe("plausibility audit", () => {
+  const norm = (w: string) => w.normalize("NFKC").toLocaleLowerCase();
+  const known = new Set(DICT.flat().map(norm));
+  const sample = Array.from({ length: 200 }, (_, i) => ({
+    concept: i % DICT.length,
+    lang: LANGS[i % LANGS.length],
+  }));
+
+  it("pseudo-words are never real words, and length doesn't give the answer away", () => {
+    let longest = 0;
+    for (const { concept, lang } of sample) {
+      const { options, correctIndex } = buildBallot(concept, lang);
+      const real = options[correctIndex];
+      for (const o of options)
+        if (o !== real && !DICT.some((r) => r.includes(o)))
+          expect(known.has(norm(o))).toBe(false);
+      if (
+        real.length >
+        Math.max(...options.filter((o) => o !== real).map((o) => o.length))
+      )
+        longest++;
+    }
+    // ponytail: 5 options -> ~20% by chance; >40% means length is a tell
+    expect(longest / sample.length).toBeLessThan(0.4);
+  });
+
+  it("builds a ballot under budget (mean < 50 ms, p95 < 80 ms)", () => {
+    const ms = sample
+      .map(({ concept, lang }) => {
+        const t = performance.now();
+        buildBallot(concept, lang);
+        return performance.now() - t;
+      })
+      .sort((x, y) => x - y);
+    expect(ms.reduce((x, y) => x + y) / ms.length).toBeLessThan(50);
+    expect(ms[Math.floor(ms.length * 0.95)]).toBeLessThan(80);
+  });
+});

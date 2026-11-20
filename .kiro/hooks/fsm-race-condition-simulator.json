@@ -1,0 +1,14 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "FSM Race Condition Simulator",
+      "trigger": "PostFileSave",
+      "matcher": "lib/game/room\\.ts$",
+      "action": {
+        "type": "agent",
+        "prompt": "La macchina a stati in lib/game/room.ts e stata modificata. Con vi.useFakeTimers() (clock virtuale, vedi lib/game/room.test.ts) verifica questi scenari, aggiungendo test in room.test.ts se non sono gia coperti: (1) due giocatori rispondono giusto a 0.2 ms di distanza: chi arriva prima prende 3 punti, il secondo 2; (2) il GM si disconnette a 29.8 s di picking: la parola viene scelta in automatico e il turno parte; (3) un giocatore si riconnette con il token nello stesso tick in cui scade il timer di guessing: niente doppio reveal, punteggi invariati; (4) il GM esce durante guessing: il turno si chiude senza bloccare la partita. Esegui `npm test -- --run lib/game/room.test.ts`. Poi aggiorna il diagramma Mermaid stateDiagram-v2 delle fasi in .kiro/specs/uordz/design.md se le transizioni sono cambiate. Non modificare room.ts: segnala i bug trovati."
+      }
+    }
+  ]
+}

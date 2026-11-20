@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { GameError, type Profile, type Settings } from "./protocol";
-import { RECONNECT_GRACE_MS, Room } from "./room";
+import { CHAT_PER_SEC, RECONNECT_GRACE_MS, Room } from "./room";
 
 const avatar = {
   skin: 0,
@@ -238,5 +238,16 @@ describe("game flow", () => {
     room.leave(ids[0]);
     expect(room.hostId).toBe(ids[1]);
     expect(room.snapshot(ids[1]).hostId).toBe(ids[1]);
+  });
+});
+
+describe("chat", () => {
+  it("rate-limits each player to CHAT_PER_SEC messages per second", () => {
+    const { room, ids } = setup(2);
+    for (let i = 0; i < CHAT_PER_SEC; i++) room.chat(ids[0], "hi");
+    expect(() => room.chat(ids[0], "hi")).toThrow(/Slow down/);
+    room.chat(ids[1], "hi"); // per player
+    vi.advanceTimersByTime(1000);
+    room.chat(ids[0], "hi");
   });
 });

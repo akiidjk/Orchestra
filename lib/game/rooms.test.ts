@@ -107,3 +107,41 @@ describe("handleConnection", () => {
     ]);
   });
 });
+
+describe("zero-leak", () => {
+  it("never sends the answer over the wire before reveal", () => {
+    vi.useFakeTimers();
+    const a = fakeWs();
+    a.say({ type: "create", profile: { nickname: "Ann", avatar }, settings });
+    const { code } = a.sent()[0];
+    const b = fakeWs();
+    b.say({ type: "join", code, profile: { nickname: "Bob", avatar } });
+    a.say({ type: "start" });
+    const gm = [a, b].find((p) => {
+      const s = p.sent().at(-1).snapshot;
+      return s.gmId === p.sent()[0].playerId;
+    })!;
+    gm.say({ type: "submit", word: "dog" });
+
+    const SECRET = new Set([
+      "correctIndex",
+      "turnPoints",
+      "concept",
+      "isCorrect",
+    ]);
+    const leaks = (v: unknown): boolean =>
+      typeof v === "object" &&
+      v !== null &&
+      Object.entries(v).some(([k, x]) => SECRET.has(k) || leaks(x));
+
+    const frames = [...a.sent(), ...b.sent()].filter(
+      (f) => f.type === "state" && f.snapshot.phase === "guessing",
+    );
+    expect(frames.length).toBeGreaterThan(0);
+    for (const f of frames) expect(leaks(f)).toBe(false);
+
+    vi.advanceTimersByTime(settings.turnTime * 1000);
+    expect(b.sent().at(-1).snapshot.correctIndex).toBeTypeOf("number");
+    vi.useRealTimers();
+  });
+});
