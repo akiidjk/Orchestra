@@ -1,0 +1,14 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Scoring Tests on Engine Change",
+      "trigger": "PostFileSave",
+      "matcher": "lib/engine/ScoringEngine\\.ts$",
+      "action": {
+        "type": "command",
+        "command": "cd $(git rev-parse --show-toplevel) && npm test -- --run --reporter=verbose tests/unit/engine/ScoringEngine.test.ts 2>&1 | tail -30"
+      }
+    }
+  ]
+}
