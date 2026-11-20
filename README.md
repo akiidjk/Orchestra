@@ -8,6 +8,8 @@ A Next.js application, built on the [kiro-templates](https://github.com/kiroclaw
 - **React 19**
 - **TypeScript** (strict)
 - **Tailwind CSS v4** via `@tailwindcss/postcss`
+- **Vitest 5** + React Testing Library (tests)
+- **Prettier 3** (formatting)
 
 ## Quick start
 
@@ -20,13 +22,39 @@ Open http://localhost:3000. Health check at http://localhost:3000/api/health ret
 
 ## Scripts
 
-| Command             | What it does            |
-| ------------------- | ----------------------- |
-| `npm run dev`       | Start the dev server     |
-| `npm run build`     | Production build         |
-| `npm run start`     | Run the production build |
-| `npm run lint`      | ESLint                   |
-| `npm run typecheck` | TypeScript check (no emit) |
+| Command                 | What it does               |
+| ----------------------- | -------------------------- |
+| `npm run dev`           | Start the dev server       |
+| `npm run build`         | Production build           |
+| `npm run start`         | Run the production build   |
+| `npm run lint`          | ESLint                     |
+| `npm run typecheck`     | TypeScript check (no emit) |
+| `npm test`              | Run the test suite once    |
+| `npm run test:watch`    | Run tests in watch mode    |
+| `npm run test:coverage` | Run tests with v8 coverage |
+| `npm run format`        | Format with Prettier       |
+| `npm run format:check`  | Check formatting (CI gate) |
+
+## Testing
+
+Tests are colocated with source as `*.test.{ts,tsx}` and run with [Vitest](https://vitest.dev) in a jsdom environment (API-route tests use node).
+
+```
+lib/utils.test.ts                # unit (cn)
+components/ui/button.test.tsx     # component (variants, click)
+app/page.test.tsx                 # page render
+app/api/health/route.test.ts      # API route
+```
+
+```bash
+npm test                # run once
+npm run test:watch      # watch
+npm run test:coverage   # with coverage → coverage/
+```
+
+## CI
+
+`.github/workflows/ci.yml` gates every push and PR to `main` on Node 22 LTS: lint, format check, typecheck, test (with a coverage artifact), and build.
 
 ## Structure
 
@@ -39,12 +67,15 @@ Open http://localhost:3000. Health check at http://localhost:3000/api/health ret
 │   └── api/health/route.ts
 ├── components/ui/        # Shared UI (Button)
 ├── lib/utils.ts         # Helpers (cn)
+├── tests/setup.ts       # Vitest setup (jest-dom matchers)
+├── vitest.config.ts
 ├── package.json
 ├── tsconfig.json
 ├── next.config.ts
 ├── postcss.config.mjs
-├── .kiro/                # Kiro workspace (steering, specs, hooks, settings)
-└── .agents/skills/       # Kiro agent skills
+├── .github/workflows/   # CI pipeline
+├── .kiro/               # Kiro workspace (steering, specs, hooks, settings)
+└── .agents/skills/      # Kiro agent skills
 ```
 
 ## Conventions
@@ -53,3 +84,4 @@ Open http://localhost:3000. Health check at http://localhost:3000/api/health ret
 - API routes for simple endpoints, server actions for mutations.
 - Import app-relative paths via the `@/*` alias (see `tsconfig.json`).
 - Tailwind v4 auto-detects content sources, so there is no `tailwind.config.ts`; extend the theme with `@theme` in `globals.css`.
+- Colocate tests next to source; explicit `import { ... } from "vitest"` (no globals).

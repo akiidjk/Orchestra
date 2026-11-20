@@ -2,106 +2,127 @@
 inclusion: always
 ---
 
-# InGliSc — prodotto, dominio e UX
+# Uordz — prodotto, dominio e UX
 
 ## Identità del prodotto
 
-InGliSc è un gioco sociale di parole inglesi per tre partecipanti. Il nome, il tono e l'identità visiva devono rimanere riconoscibili: interfaccia allegra, semplice, colorata e adatta a una partita tra amici.
+Uordz è un gioco multiplayer in tempo reale di indovinare parole tramite traduzione. Il motto è _"Can you hear the right word?"_: un giocatore conduce (il Game Master) e gli altri ascoltano la nota giusta. È competitivo, educativo e deliberatamente caotico: insegna qualche parola in un'altra lingua senza sembrare una lezione.
 
-Il giocatore può:
+Il tono sta a metà tra un pub quiz e un'improvvisazione jazz: giocoso senza essere infantile, competitivo senza essere punitivo. Il feedback è immediato e perdere è buffo più che frustrante.
 
-- creare una lobby privata;
-- condividere un codice di sei caratteri;
-- entrare in una lobby esistente con un nickname;
-- giocare con altri umani o aggiungere bot;
-- scegliere una partita da 3, 6, 9 o 12 manche;
-- salvare parole nei memo locali;
-- usare tema chiaro o scuro;
-- giocare su Android, iOS o Web.
+Un giocatore può:
+
+- creare una stanza e diventarne il primo Game Master;
+- scegliere la lingua target, il numero di manche e il tempo per turno;
+- creare una stanza pubblica (visibile nell'elenco Open Rooms) o privata (accessibile solo tramite codice di 6 caratteri);
+- entrare in una stanza tramite codice o dall'elenco Open Rooms;
+- creare il proprio avatar prima di entrare;
+- giocare in tempo reale con sincronizzazione via WebSocket.
+
+Nessun account, nessun login: nickname e avatar sono conservati nella sessione del browser.
 
 ## Modello di partita
 
-Una lobby ha tre posti esatti. Il primo giocatore è il creatore e inizialmente l'host. I bot occupano un posto e partecipano al gioco come giocatori, ma non hanno token o sessione client.
+Il creatore della stanza è il primo Game Master e configura:
 
-Il ruolo di paroliere ruota nell'ordine dei partecipanti, includendo i bot. Per una partita con più di tre manche, l'ordine ricomincia dopo aver completato il giro dei partecipanti.
+- la **lingua target** (la lingua in cui appaiono tutte le risposte);
+- il **numero di manche** (predefinito: 5);
+- il **tempo limite per turno** (predefinito: 60 secondi).
 
-Le fasi valide sono:
+Una **manche** è una rotazione completa: ogni giocatore fa un turno come Game Master. Quando tutti hanno condotto, la manche finisce e ne comincia una nuova. Dopo l'ultima manche appare il **podio** con i primi tre e la classifica finale.
 
-```text
-waiting
-  -> setup
-  -> initial-choices
-  -> discard
-  -> final-choices
-  -> round-result
-  -> setup
-  -> game-result
-```
+### Fasi di un turno
 
-Il backend è l'autorità per transizioni, scelte, soluzione, punteggi e risultati. Il frontend visualizza lo stato e invia intenzioni dell'utente; non decide l'esito.
+1. **Selezione della parola.** Il Game Master ha **30 secondi** per digitare una parola (in qualsiasi lingua) e confermarne la validità. Il sistema verifica la parola contro un dizionario prima di accettarla: parole inventate o errate vengono rifiutate con feedback immediato. Se il tempo scade o il Game Master salta, il sistema genera automaticamente una parola valida per suo conto e il turno procede normalmente.
+2. **Costruzione della scheda.** Il sistema mostra cinque opzioni: la traduzione vera nella lingua target più **quattro falsi plausibili** (traduzioni errate o pseudo-parole morfologicamente simili nella stessa lingua, generate per sembrare convincenti).
+3. **Gara delle risposte.** Le cinque opzioni appaiono tutte insieme. I giocatori scelgono; più veloce è la risposta corretta, più punti si ottengono. La velocità è premiata su una scala mobile dentro la finestra di tempo.
+4. **Rivelazione.** La risposta corretta si illumina. I punti vengono assegnati. Il turno passa al prossimo Game Master.
 
-## Regole di una manche
+Il backend è l'autorità per le transizioni, la validazione della parola, la generazione di traduzione e falsi, il calcolo dei punteggi e la rivelazione. Il frontend visualizza lo stato e invia le intenzioni del giocatore; non decide l'esito.
 
-1. Il paroliere inserisce un prompt o indizio in italiano.
-2. Il paroliere inserisce cinque opzioni inglesi distinte e indica quella corretta.
-3. Gli altri due giocatori scelgono una risposta in segreto.
-4. Quando entrambi hanno scelto, il paroliere scarta una delle quattro opzioni sbagliate.
-5. Ogni giocatore conferma la scelta iniziale oppure la cambia una sola volta.
-6. Se la scelta iniziale è stata scartata, il cambio è obbligatorio.
-7. Il backend calcola i punti e pubblica il risultato.
-8. L'host avanza alla manche successiva o alla classifica finale.
+## Validazione della parola
 
-Il prompt e le opzioni devono essere testo valido, non vuoto, senza caratteri di controllo e nei limiti previsti dall'implementazione. Le opzioni devono essere distinte dopo la normalizzazione.
+La parola del Game Master deve esistere in un dizionario riconosciuto prima che il turno possa iniziare. La validazione è veloce (sotto il secondo) e avviene mentre il Game Master digita: un indicatore conferma che la parola è nota prima dell'invio. Le parole che falliscono la validazione vengono segnalate subito, così il Game Master può provarne un'altra senza sprecare la finestra di 30 secondi.
+
+Regole:
+
+- niente parole inventate, refusi o nomi propri fuori dal dizionario;
+- qualsiasi lingua è ammessa come parola sorgente, purché il sistema possa confermarne l'esistenza e produrre una traduzione nella lingua target della stanza;
+- se il tempo del Game Master scade prima di una parola valida, il sistema ne sceglie una automaticamente e il turno procede normalmente.
 
 ## Punteggi
 
-Per ciascun giocatore che non è il paroliere:
+| Azione                                 | Punti                         |
+| -------------------------------------- | ----------------------------- |
+| Risposta corretta, la più veloce       | 3 pt                          |
+| Risposta corretta, entro il tempo      | 1–2 pt (scala mobile)         |
+| Risposta errata                        | 0 pt                          |
+| Game Master: nessuno indovina          | +1 pt (hai fregato la stanza) |
 
-- risposta corretta senza cambio: `+3`;
-- risposta corretta dopo il cambio: `+1`;
-- risposta errata: `+0`.
+La velocità si misura dal momento in cui le opzioni appaiono sullo schermo. La prima risposta corretta guadagna di più; le successive guadagnano progressivamente meno. Una risposta sbagliata blocca il giocatore per il resto del turno.
 
-Per il paroliere:
+Il Game Master non risponde: ottiene punti solo se frega tutti.
 
-- nessuno indovina e la coppia prompt-traduzione è nel dizionario: `+3`;
-- nessuno indovina e la coppia non è verificata: `+2`;
-- esattamente un giocatore indovina dopo aver cambiato: `+1`;
-- tutti gli altri casi: `+0`.
+## Avatar
 
-La classifica deve gestire i pareggi condividendo la posizione. Non introdurre criteri di spareggio non richiesti.
+Prima di entrare, ogni giocatore crea un avatar semplice in stile skribbl.io: un viso assemblato da un insieme fisso di componenti espressivi (occhi, bocca, capelli, accessori, tono della pelle). Nessuna abilità di disegno richiesta. Gli avatar appaiono accanto al nome durante la partita e sul podio finale: un chip **48 × 48** accanto al nome in gioco, più grande sul podio.
 
-## Lobby, abbandono e riconnessione
+Avatar e nickname sono conservati nella sessione del browser e ripristinati automaticamente alla riconnessione: niente account, niente login. Se si chiude e riapre la stessa scheda, si torna nella stanza con la stessa faccia e lo stesso nome.
 
-- I nickname sono univoci senza distinzione tra maiuscole/minuscole, normalizzati con NFKC e lunghi al massimo 30 caratteri.
-- Il creatore può scegliere solo 3, 6, 9 o 12 manche.
-- L'host può aggiungere, rimuovere e configurare bot solo mentre la lobby è in `waiting`.
-- Se l'host abbandona, il ruolo passa al primo giocatore umano rimasto.
-- Se un giocatore abbandona durante una partita, la partita viene annullata e la lobby torna in attesa con punteggi azzerati.
-- Se non rimangono giocatori umani, la lobby viene eliminata.
-- Le sessioni locali possono essere ricaricate dal client, ma la sessione non sopravvive al riavvio del backend.
-- Le lobby inattive scadono secondo il TTL configurato dal backend.
+## Chat in partita
+
+Un pannello chat è sempre visibile durante la partita. I giocatori possono inviare brevi messaggi di testo in qualsiasi momento, anche mentre rispondono. La chat è **effimera**: esiste solo per la sessione e non viene registrata.
+
+Usi previsti: reazioni a una rivelazione, leggera provocazione, coordinare un rematch. La chat non interferisce col gioco: sta in una sidebar e non copre mai le carte delle risposte.
+
+## Stanze pubbliche e private
+
+La stanza supporta due modalità:
+
+- **Stanza privata:** creata con un codice che l'host condivide manualmente. Solo chi ha il codice può entrare.
+- **Stanza pubblica:** elencata nel browser **Open Rooms** nella home. Chiunque può entrare da lì, fino al limite di giocatori. L'host imposta lingua target, numero di manche e tempo limite creando la stanza, così chi entra sa cosa trova.
+
+Il browser Open Rooms mostra per ogni stanza la lingua target, il numero attuale di giocatori e se la partita è iniziata. Le stanze già in corso vengono mostrate ma segnate come piene o in gioco.
+
+Non esiste matchmaking per abilità. Open Rooms è un semplice elenco pubblico: veloce, trasparente, a basso attrito.
+
+## Ciclo di vita della stanza
+
+- Le stanze pubbliche appaiono nel browser Open Rooms finché il gioco non inizia o la stanza è piena.
+- Le stanze private sono accessibili solo tramite il codice di 6 caratteri.
+- Nessun account richiesto: i giocatori si identificano per nickname + avatar, conservati nella sessione del browser.
+- Se un giocatore si disconnette a metà partita, il suo posto è trattenuto brevemente; alla riconnessione rientra con lo stesso nickname, avatar e punteggio.
+- Se il Game Master si disconnette durante la finestra di selezione della parola, il sistema genera automaticamente una parola e il turno procede.
+- Dopo il podio finale, la stanza può essere riavviata per un rematch con gli stessi giocatori.
+- Le stanze inattive scadono dopo 24 ore.
 
 ## Privacy e visibilità
 
-Prima del risultato di una manche:
+Prima della rivelazione:
 
-- ogni giocatore vede solo ciò che è consentito dal proprio ruolo;
-- le scelte iniziali degli altri non devono rivelare la soluzione;
-- la soluzione corretta non deve comparire nello snapshot personale;
-- token bearer, dati interni e mappe di stato non devono essere mostrati all'utente.
+- ogni giocatore vede solo ciò che il proprio ruolo consente;
+- la soluzione corretta non deve comparire nello snapshot inviato ai client prima della rivelazione;
+- i dati interni, i token e gli stati lato server non devono essere mostrati all'utente.
 
-Dopo il risultato si possono mostrare soluzione, opzioni, scarto, scelte finali, punti e dettaglio della manche.
+Dopo la rivelazione si possono mostrare soluzione, opzioni, punteggi e dettaglio del turno.
 
 ## UX e linguaggio
 
-- Tutti i testi visibili all'utente sono in italiano, salvo le parole inglesi del gioco.
-- Mantieni etichette comprensibili, stati di caricamento, errori espliciti e feedback per le azioni.
-- Mantieni accessibilità: ruoli dei controlli, label, stato disabled/selected/checked, focus e messaggi live dove già presenti.
-- Mantieni supporto al tema chiaro/scuro e non usare colori come unico segnale di stato.
-- Effetti sonori e animazioni sono opzionali e non devono bloccare la partita né l'accessibilità.
+- Interfaccia allegra, semplice e colorata; tono giocoso ma non infantile.
+- Palette: indaco profondo e ambra calda come primari, con accenti per zona linguistica (ad es. rosso ruggine per lo spagnolo, blu ardesia per il tedesco); la palette si sposta in base alla lingua target della stanza.
+- Tipografia: una sola famiglia sans-serif arrotondata; pulsanti delle opzioni grandi e leggibili; i delta di punteggio (+3, +1) rimbalzano brevemente quando assegnati.
+- Layout: metafora del palcoscenico centrato; il prompt sta in alto come battuta del direttore, le cinque carte delle risposte si dispiegano sotto; il timer è un arco che si svuota attorno al prompt; la chat sta di lato senza competere durante le risposte.
+- Motion: transizioni scattanti, non cinematografiche; le risposte corrette pulsano una volta col colore d'accento, le sbagliate tremano una volta poi sbiadiscono; l'indicatore di validazione della parola usa un tenue bagliore verde/rosso.
+- Avatar: illustrazione vettoriale piatta; una palette limitata per componente mantiene le combinazioni coerenti anche a piccole dimensioni.
+- Suono: toni sintetici brevi per i momenti chiave (chime alle opzioni, tono alto per corretto, tono basso per errato, fanfara per il Game Master che frega tutti); tutto è attivabile globalmente e spento per impostazione predefinita.
+- Mantieni accessibilità: ruoli dei controlli, label, stato disabled/selected/checked, focus e messaggi live dove già presenti; non usare il colore come unico segnale di stato.
+- Layout responsive web-first: desktop e tablet grande sono l'obiettivo principale; il mobile è funzionale ma secondario.
 
-## Fuori ambito senza richiesta esplicita
+## Fuori ambito
 
-Non aggiungere account, profili persistenti, database, chat, matchmaking pubblico, pagamenti, nuove modalità di gioco, websocket o deployment Internet sicuro come parte di una modifica ordinaria.
+Senza richiesta esplicita, non aggiungere:
 
-Una modifica alle regole richiede l'aggiornamento coordinato di specifica, backend, frontend, test e documentazione.
+- profili utente persistenti o cronologia tra sessioni;
+- liste di parole o mazzi personalizzati;
+- app mobile nativa;
+- matchmaking per abilità.

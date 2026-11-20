@@ -2,136 +2,47 @@
 inclusion: always
 ---
 
-# InGliSc — stack, contratti e invarianti tecniche
+# Uordz — stack tecnico
 
-## Runtime e applicazioni
+## Panoramica tecnica (da DESIGN.md)
 
-Il progetto è composto da due applicazioni sorelle:
+- **Backend:** server Node.js che gestisce lo stato delle stanze, la logica dei turni, il punteggio, la validazione delle parole, la traduzione e la generazione dei falsi. Connessioni WebSocket per la sincronizzazione in tempo reale dello stato (inizio turno, rivelazione delle risposte, messaggi di chat, eventi di ingresso/uscita dei giocatori).
+- **Frontend:** web-first (React). Layout responsive rivolto a desktop e tablet grande; il mobile è funzionale ma secondario.
+- **Validazione della parola:** lookup sul dizionario all'invio. Il backend verifica la parola sottomessa contro un dizionario multilingue prima di accettarla e prima di generare le traduzioni.
+- **Traduzione + generazione falsi:** API di traduzione esterna per la risposta vera; opzioni false generate lato server usando campionamento dal dizionario e pattern morfologici della lingua target, in modo che i falsi sembrino plausibili.
+- **Sincronizzazione in tempo reale:** WebSocket per tutto lo stato live (fasi del turno, rivelazione delle risposte, chat, presenza dei giocatori). Il server marca il timestamp della rivelazione delle opzioni e calcola tutti i punteggi scalati per velocità lato server, per impedire la manipolazione da parte del client.
+- **Sessione:** nickname e avatar sono persistiti nel `sessionStorage` del browser e inviati alla riconnessione per ripristinare il giocatore nel suo posto senza reinserire i dati.
 
-- `inglisc/`: app Expo/React Native con target Android, iOS e Web;
-- `inglisc-be/`: API REST Node.js/Express con stato autorevole del gioco.
+Nessun account utente persistente. Nessuna cronologia messaggi lato server. Nessuna app mobile nativa.
 
-Usare Node.js 22 e npm. Rispettare i `package.json` e i lockfile esistenti. Non introdurre TypeScript, bundler, framework server o database nuovi senza una richiesta esplicita.
+## Stato attuale del repository
 
-## Frontend
+Il frontend è **implementato** come app Next.js 15 (App Router) alla radice del repository: React 19, TypeScript in modalità strict, Tailwind CSS v4 via `@tailwindcss/postcss`.
 
-Il frontend usa JavaScript/JSX, React e componenti React Native.
+Il backend realtime Node/Node con WebSocket descritto in DESIGN.md **fa parte del design ma non è ancora stato creato** nel repository. Non presupporre che esista: lo stato delle stanze, la logica dei turni, i punteggi, la validazione delle parole, la traduzione, la generazione dei falsi e la sincronizzazione WebSocket devono essere realizzati prima che il prodotto funzioni end-to-end. Lo stato di un endpoint deve essere derivato dal codice effettivamente presente, non dal design.
 
-Regole:
+## Fatti di ingegneria consolidati
 
-- preferire componenti e API React Native portabili su Web;
-- usare `Platform` quando una differenza tra web, Android e iOS è inevitabile;
-- non accedere direttamente al DOM in componenti condivisi;
-- riusare i token colore, gli stili e i componenti già presenti in `App.js`;
-- mantenere supporto a tema chiaro/scuro;
-- mantenere le label accessibili e gli stati dei controlli;
-- non duplicare nel frontend le regole autorevoli di punteggio o autorizzazione.
+- Package manager: npm (lockfile `package-lock.json`).
+- Runtime: Node.js `>=22.12.0` dichiarato in `engines` (in `package.json`); la CI fissa Node 22 LTS. Localmente usa un Node LTS (22.x) se si incontrano problemi.
+- Testing: Vitest 5 + React Testing Library (`@testing-library/react`) + `@testing-library/jest-dom`. Ambiente jsdom per i componenti, node per le route API (via pragma `// @vitest-environment node`). Coverage v8 via `@vitest/coverage-v8`.
+- Formattazione: Prettier 3.
+- CI: GitHub Actions (`.github/workflows/ci.yml`) su Node 22 LTS: lint → format check → typecheck → test con coverage → build.
+- Path alias `@/*` → radice del repository (`tsconfig.json` paths; replicato in `vitest.config.ts`).
+- Tailwind v4: `@import "tailwindcss";` in `app/globals.css`; contenuti auto-rilevati, nessun `tailwind.config.ts`.
+- Test collocati accanto al sorgente come `*.test.{ts,tsx}`; import espliciti da vitest, niente tipi globali.
 
-`services/useGame.js` è responsabile di:
+## Comandi
 
-- sessione locale;
-- snapshot corrente;
-- polling;
-- lock delle mutazioni;
-- gestione di errori, timeout e risposta incerta;
-- memo e segreti locali;
-- aggiornamento tramite revisione monotona `snapshot.rev`.
+- Installazione: `npm install` (oppure `npm ci` in CI).
+- Dev: `npm run dev` → http://localhost:3000
+- Build: `npm run build`
+- Avvio prod: `npm run start`
+- Lint: `npm run lint`
+- Typecheck: `npm run typecheck`
+- Test: `npm test` · watch: `npm run test:watch` · coverage: `npm run test:coverage`
+- Formattazione: `npm run format` · check: `npm run format:check`
 
-`services/LobbyService.js` è il punto di accesso HTTP. Nuovi endpoint devono passare da questo servizio, non da `fetch` sparsi nelle schermate.
+## Health check
 
-La URL del backend è configurata con `EXPO_PUBLIC_SERVER_URL`. Preservare i casi documentati:
-
-- browser locale: `http://localhost:3000`;
-- emulatore Android: normalmente `http://10.0.2.2:3000`;
-- dispositivo fisico: IP LAN del computer;
-- deployment: URL raggiungibile, preferibilmente HTTPS.
-
-AsyncStorage contiene sessione, memo e dati segreti locali. Non cambiare le chiavi esistenti senza una migrazione compatibile.
-
-## Backend
-
-Il backend usa CommonJS, Express e JavaScript Node senza transpiler.
-
-Responsabilità:
-
-- `server.js`: middleware, costruzione app, route pubbliche, health check e avvio;
-- `routes/`: mapping metodo/percorso;
-- `controllers/`: adattamento tra HTTP e store;
-- `game.js`: dominio, store in memoria, autenticazione, fasi, bot, punteggi e snapshot;
-- `middlewares/`: middleware HTTP condivisi;
-- `word-pairs.json`: dizionario usato per verifica e bot.
-
-La logica di dominio deve restare nel backend. Controller e route non devono ricalcolare punteggi, autorizzazioni o transizioni.
-
-## Contratto HTTP
-
-Le risposte sono JSON per le API. Gli errori applicativi devono mantenere:
-
-```json
-{
-  "error": {
-    "code": "ERROR_CODE",
-    "message": "Messaggio descrittivo."
-  }
-}
-```
-
-Codici e semantica da preservare:
-
-- `400`: input, JSON, opzione o scarto non validi;
-- `401`: bearer token mancante o non valido;
-- `403`: giocatore non autorizzato per ruolo/azione;
-- `404`: lobby, bot o risorsa inesistente;
-- `409`: fase, nickname, capacità o stato incompatibile;
-- `413`: body troppo grande;
-- `415`: media type non supportato;
-- `500`: errore interno.
-
-Le richieste con body devono essere JSON. Conservare:
-
-- `Cache-Control: no-store`;
-- limite body di 16 KiB;
-- `x-powered-by` disabilitato;
-- middleware CORS esistente;
-- normalizzazione del codice lobby in maiuscolo.
-
-## Autenticazione e autorizzazione
-
-Il token bearer identifica il giocatore nella lobby ed è valido solo finché il backend mantiene lo stato.
-
-Ogni mutazione deve:
-
-1. autenticare il giocatore;
-2. recuperare la lobby corretta;
-3. verificare fase;
-4. verificare ruolo, host o paroliere quando richiesto;
-5. validare body e campi consentiti;
-6. applicare una sola transizione coerente;
-7. incrementare la revisione e aggiornare l'attività.
-
-Non fidarsi mai di `playerId`, soluzione, punti, fase, ordine o risultati inviati dal client.
-
-## Snapshot
-
-Lo snapshot è personalizzato per il giocatore autenticato. Deve contenere solo dati visibili a quel ruolo.
-
-La soluzione corretta deve rimanere nascosta prima di `round-result`/`game-result`. Non inserire accidentalmente `correctId`, dati interni di `Map`, token o riferimenti allo store nella serializzazione.
-
-Quando cambia lo stato, incrementare `rev`. Il client scarta snapshot con revisione precedente.
-
-## Validazione e sicurezza
-
-Validare sempre:
-
-- tipo e forma del body;
-- assenza di campi extra non consentiti;
-- normalizzazione Unicode NFKC;
-- lunghezza massima;
-- caratteri di controllo e formato;
-- unicità di nickname e opzioni;
-- appartenenza dell'opzione alla manche;
-- fase e ruolo.
-
-Non inserire segreti, token, URL privati o dati personali nei log. Non modificare `node_modules`, output di build o file generati.
-
-Lo stato è in memoria e il backend è pensato per una sola istanza. Non promettere persistenza o comportamento multiistanza senza introdurre esplicitamente storage condiviso e aggiornare la documentazione.
+`GET /api/health` → `{ "status": "ok" }`
