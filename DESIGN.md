@@ -1,14 +1,14 @@
-# Orchestra 🎵
+# Uordz 🎵
 
 > *"Can you hear the right word?"*
 
-Orchestra is a multiplayer web game where language becomes your instrument. One player conducts — the others listen for the right note. Fast fingers, sharper minds, and a little luck with vocabulary will carry you to the podium.
+Uordz is a multiplayer web game where language becomes your instrument. One player conducts — the others listen for the right note. Fast fingers, sharper minds, and a little luck with vocabulary will carry you to the podium.
 
 ---
 
 ## What It Is
 
-Orchestra is a real-time word-guessing game built around translation. Each turn, the Game Master picks a word and the system reveals five options in the target language: **one genuine translation** and **four convincing fakes**. Everyone races to pick the real one. Guess fast, guess right, score big.
+Uordz is a real-time word-guessing game built around translation. Each turn, the Game Master picks a word and the system reveals five options in the target language: **one genuine translation** and **four convincing fakes**. Everyone races to pick the real one. Guess fast, guess right, score big.
 
 It is competitive, educational, and deliberately chaotic — the kind of game that teaches you a few words in French without feeling like a lesson.
 
@@ -99,7 +99,7 @@ There is no skill-based matchmaking. Open Rooms is a simple public list — fast
 
 ### Tone
 
-Orchestra sits at the intersection of a pub quiz and a jazz improvisation. It is playful without being childish, competitive without being punishing. The language is light, the feedback is immediate, and losing feels funny rather than frustrating.
+Uordz sits at the intersection of a pub quiz and a jazz improvisation. It is playful without being childish, competitive without being punishing. The language is light, the feedback is immediate, and losing feels funny rather than frustrating.
 
 ### Visual Style
 
@@ -151,8 +151,4 @@ No persistent user accounts. No server-side message history. No native mobile ap
 
 ## Name
 
-**Orchestra** because every player is an instrument, the Game Master is the conductor, and a good session feels like something everyone played together — even when only one person wins.
-
----
-
-*Inspired by [inglisc](https://github.com/fernet-ai/inglisc) — un piccolo gioco stupido per imparare l'inglese, o forse no.*
+**Uordz** Where languages and fun meet!
