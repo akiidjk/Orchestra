@@ -43,8 +43,8 @@ Turn order is fixed at game start (`order: playerId[]`). `turnIndex` counts turn
 Client → server (`type`):
 
 - `create {profile, settings}` · `join {code, profile, token?}` · `leave`
-- `start` (host) · `check {word}` (GM) · `submit {word}` (GM) · `skip` (GM)
-- `answer {index}` (guesser) · `chat {text}` · `rematch` (host)
+- `start` (host; also rematch from podium) · `check {word}` (GM) · `submit {word}` (GM) · `skip` (GM)
+- `answer {index}` (guesser) · `chat {text}`
 
 Server → client:
 

@@ -1,87 +1,66 @@
-# Orchestra
+# Uordz 🎵
 
-A Next.js application, built on the [kiro-templates](https://github.com/kiroclawai/kiro-templates) `nextjs-starter`. Managed as a Kiro workspace.
+> _"Can you hear the right word?"_
 
-## Stack
-
-- **Next.js 15** with App Router
-- **React 19**
-- **TypeScript** (strict)
-- **Tailwind CSS v4** via `@tailwindcss/postcss`
-- **Vitest 5** + React Testing Library (tests)
-- **Prettier 3** (formatting)
+Real-time multiplayer translation-guessing game. One player (the Game Master) picks a word; everyone else races to spot its real translation among five options in the room's target language. Full game design: [`DESIGN.md`](DESIGN.md). Spec: [`.kiro/specs/uordz/`](.kiro/specs/uordz/).
 
 ## Quick start
 
 ```bash
 npm install
-npm run dev
+npm run dev        # custom server: Next.js + WebSocket on http://localhost:3000
 ```
 
-Open http://localhost:3000. Health check at http://localhost:3000/api/health returns `{ "status": "ok" }`.
+Open two browser windows, create a room in one and join with the code (or from **Open Rooms**) in the other.
+
+Production:
+
+```bash
+npm run build
+npm start          # NODE_ENV=production, PORT env var (default 3000)
+```
+
+## How it works
+
+- `server.ts` is a single Node process: it serves Next.js, `GET /api/rooms` (public room list) and a WebSocket on `/ws`.
+- Game state lives **in memory** in that process (`lib/game/`). One instance only; restarting the server drops every room. Inactive rooms expire after 24 h.
+- The server is authoritative: word validation, ballot generation, timers and speed-based scoring all happen server-side. The correct answer is never sent before the reveal.
+- Words come from an **offline dictionary** (`lib/game/dictionary.ts`, ~230 concepts in EN/IT/FR/ES/DE). No API keys, no network.
+- Players have no accounts: nickname, avatar and the per-room reconnect token live in `sessionStorage`. A dropped player keeps their slot for 60 s.
+
+| Path                       | Role                                               |
+| -------------------------- | -------------------------------------------------- |
+| `lib/game/protocol.ts`     | Shared client/server types and input validation    |
+| `lib/game/words.ts`        | Lookup, translation, fake options                  |
+| `lib/game/room.ts`         | Room state machine, timers, scoring, snapshots     |
+| `lib/game/rooms.ts`        | Room registry, codes, expiry, WebSocket dispatch   |
+| `lib/client/`              | `useRoom` hook, session storage, sounds            |
+| `components/`              | Avatar, profile form, game UI (`components/game/`) |
+| `app/page.tsx`             | Home: profile, create/join, Open Rooms             |
+| `app/room/[code]/page.tsx` | Game screen                                        |
 
 ## Scripts
 
-| Command                 | What it does               |
-| ----------------------- | -------------------------- |
-| `npm run dev`           | Start the dev server       |
-| `npm run build`         | Production build           |
-| `npm run start`         | Run the production build   |
-| `npm run lint`          | ESLint                     |
-| `npm run typecheck`     | TypeScript check (no emit) |
-| `npm test`              | Run the test suite once    |
-| `npm run test:watch`    | Run tests in watch mode    |
-| `npm run test:coverage` | Run tests with v8 coverage |
-| `npm run format`        | Format with Prettier       |
-| `npm run format:check`  | Check formatting (CI gate) |
+| Command                 | What it does                            |
+| ----------------------- | --------------------------------------- |
+| `npm run dev`           | Dev server (Next + WebSocket via `tsx`) |
+| `npm run build`         | Production build                        |
+| `npm start`             | Run the production build                |
+| `npm run lint`          | ESLint                                  |
+| `npm run typecheck`     | TypeScript check                        |
+| `npm test`              | Run the test suite once                 |
+| `npm run test:coverage` | Tests with v8 coverage                  |
+| `npm run format`        | Format with Prettier                    |
+| `npm run format:check`  | Check formatting (CI gate)              |
 
 ## Testing
 
-Tests are colocated with source as `*.test.{ts,tsx}` and run with [Vitest](https://vitest.dev) in a jsdom environment (API-route tests use node).
-
-```
-lib/utils.test.ts                # unit (cn)
-components/ui/button.test.tsx     # component (variants, click)
-app/page.test.tsx                 # page render
-app/api/health/route.test.ts      # API route
-```
-
-```bash
-npm test                # run once
-npm run test:watch      # watch
-npm run test:coverage   # with coverage → coverage/
-```
+Vitest, tests colocated as `*.test.{ts,tsx}`. Game logic tests (`lib/game/*.test.ts`) run in node with fake timers; UI tests use jsdom + React Testing Library.
 
 ## CI
 
-`.github/workflows/ci.yml` gates every push and PR to `main` on Node 22 LTS: lint, format check, typecheck, test (with a coverage artifact), and build.
+`.github/workflows/ci.yml` runs lint, format check, typecheck, tests with coverage and build on Node 22 for every push/PR to `main`.
 
-## Structure
+## Limits
 
-```
-.
-├── app/
-│   ├── layout.tsx        # Root layout
-│   ├── page.tsx          # Home page
-│   ├── globals.css       # Tailwind entry (@import "tailwindcss")
-│   └── api/health/route.ts
-├── components/ui/        # Shared UI (Button)
-├── lib/utils.ts         # Helpers (cn)
-├── tests/setup.ts       # Vitest setup (jest-dom matchers)
-├── vitest.config.ts
-├── package.json
-├── tsconfig.json
-├── next.config.ts
-├── postcss.config.mjs
-├── .github/workflows/   # CI pipeline
-├── .kiro/               # Kiro workspace (steering, specs, hooks, settings)
-└── .agents/skills/      # Kiro agent skills
-```
-
-## Conventions
-
-- Server components by default; `"use client"` only when you need state or effects.
-- API routes for simple endpoints, server actions for mutations.
-- Import app-relative paths via the `@/*` alias (see `tsconfig.json`).
-- Tailwind v4 auto-detects content sources, so there is no `tailwind.config.ts`; extend the theme with `@theme` in `globals.css`.
-- Colocate tests next to source; explicit `import { ... } from "vitest"` (no globals).
+Single instance, in-memory state, no persistence, no spectators, fixed dictionary.

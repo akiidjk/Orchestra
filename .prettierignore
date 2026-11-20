@@ -12,3 +12,6 @@ next-env.d.ts
 .gitignore
 .prettierignore
 *.gitkeep
+
+# authored design doc — keep the user's formatting
+DESIGN.md

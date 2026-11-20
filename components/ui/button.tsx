@@ -1,7 +1,7 @@
 import * as React from "react";
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "default" | "outline";
+  variant?: "default" | "outline" | "accent";
 }
 
 export function Button({
@@ -10,10 +10,11 @@ export function Button({
   ...props
 }: ButtonProps) {
   const base =
-    "inline-flex items-center justify-center rounded-md px-4 py-2 font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2";
+    "inline-flex items-center justify-center rounded-xl px-4 py-2 font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-brand focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50";
   const variants = {
-    default: "bg-blue-600 text-white hover:bg-blue-700",
-    outline: "border border-gray-300 hover:bg-gray-100",
+    default: "bg-indigo-brand text-white hover:brightness-110",
+    outline: "border border-border bg-card hover:brightness-95",
+    accent: "bg-accent text-white hover:brightness-110",
   };
 
   return (

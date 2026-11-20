@@ -14,7 +14,7 @@ describe("Button", () => {
   it("applies the default variant classes", () => {
     render(<Button>Default</Button>);
     const button = screen.getByRole("button");
-    expect(button.className).toContain("bg-blue-600");
+    expect(button.className).toContain("bg-indigo-brand");
     expect(button.className).toContain("text-white");
   });
 
@@ -22,7 +22,12 @@ describe("Button", () => {
     render(<Button variant="outline">Outline</Button>);
     const button = screen.getByRole("button");
     expect(button.className).toContain("border");
-    expect(button.className).toContain("hover:bg-gray-100");
+    expect(button.className).toContain("border-border");
+  });
+
+  it("applies the accent variant classes", () => {
+    render(<Button variant="accent">Accent</Button>);
+    expect(screen.getByRole("button").className).toContain("bg-accent");
   });
 
   it("merges a custom className", () => {
