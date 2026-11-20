@@ -52,12 +52,12 @@ Regole:
 
 ## Punteggi
 
-| Azione                                 | Punti                         |
-| -------------------------------------- | ----------------------------- |
-| Risposta corretta, la più veloce       | 3 pt                          |
-| Risposta corretta, entro il tempo      | 1–2 pt (scala mobile)         |
-| Risposta errata                        | 0 pt                          |
-| Game Master: nessuno indovina          | +1 pt (hai fregato la stanza) |
+| Azione                            | Punti                         |
+| --------------------------------- | ----------------------------- |
+| Risposta corretta, la più veloce  | 3 pt                          |
+| Risposta corretta, entro il tempo | 1–2 pt (scala mobile)         |
+| Risposta errata                   | 0 pt                          |
+| Game Master: nessuno indovina     | +1 pt (hai fregato la stanza) |
 
 La velocità si misura dal momento in cui le opzioni appaiono sullo schermo. La prima risposta corretta guadagna di più; le successive guadagnano progressivamente meno. Una risposta sbagliata blocca il giocatore per il resto del turno.
 

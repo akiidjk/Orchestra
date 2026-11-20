@@ -25,6 +25,7 @@ Il backend realtime Node/Node con WebSocket descritto in DESIGN.md **fa parte de
 
 - Package manager: npm (lockfile `package-lock.json`).
 - Runtime: Node.js `>=22.12.0` dichiarato in `engines` (in `package.json`); la CI fissa Node 22 LTS. Localmente usa un Node LTS (22.x) se si incontrano problemi.
+- Realtime: server WebSocket `ws` in `server.ts`, avviato con `tsx` (dev e prod); stato in memoria, istanza singola
 - Testing: Vitest 5 + React Testing Library (`@testing-library/react`) + `@testing-library/jest-dom`. Ambiente jsdom per i componenti, node per le route API (via pragma `// @vitest-environment node`). Coverage v8 via `@vitest/coverage-v8`.
 - Formattazione: Prettier 3.
 - CI: GitHub Actions (`.github/workflows/ci.yml`) su Node 22 LTS: lint → format check → typecheck → test con coverage → build.
@@ -35,9 +36,9 @@ Il backend realtime Node/Node con WebSocket descritto in DESIGN.md **fa parte de
 ## Comandi
 
 - Installazione: `npm install` (oppure `npm ci` in CI).
-- Dev: `npm run dev` → http://localhost:3000
+- Dev: `npm run dev` (`tsx server.ts`) → http://localhost:3000, WebSocket su `/ws`
 - Build: `npm run build`
-- Avvio prod: `npm run start`
+- Avvio prod: `npm run start` (`NODE_ENV=production tsx server.ts`, variabile `PORT`)
 - Lint: `npm run lint`
 - Typecheck: `npm run typecheck`
 - Test: `npm test` · watch: `npm run test:watch` · coverage: `npm run test:coverage`

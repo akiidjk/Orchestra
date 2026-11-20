@@ -6,8 +6,11 @@ inclusion: always
 
 - Layout: Next.js App Router alla radice del repository, insieme alla configurazione del workspace Kiro.
   ```
-  app/                      # App Router: layout.tsx, page.tsx, globals.css, api/health/route.ts
-  components/ui/            # Componenti UI condivisi (Button)
+  server.ts                 # Server Node custom: Next + WebSocket /ws + GET /api/rooms
+  app/                      # App Router: home (page.tsx), room/[code]/page.tsx, globals.css, api/health
+  components/               # avatar.tsx, profile-form.tsx, ui/ (Button), game/ (stage, lobby, chat, scoreboard, podium)
+  lib/game/                 # Dominio lato server: protocol, dictionary, words, room, rooms
+  lib/client/               # Solo browser: hook use-room, sessionStorage, suoni
   lib/                      # Helper (cn)
   tests/setup.ts            # Setup Vitest (matchers jest-dom)
   *.test.{ts,tsx}           # Test collocati accanto al sorgente
@@ -20,7 +23,7 @@ inclusion: always
   .kiro/                    # Workspace Kiro: steering/, specs/, hooks/, settings/
   .agents/skills/           # Skill degli agent Kiro
   ```
-  Il servizio backend realtime descritto in DESIGN.md (Node.js + WebSocket, stato delle stanze, logica dei turni, validazione delle parole, traduzione, generazione dei falsi, punteggi) **non è ancora presente** nel repository.
+  Il backend realtime (stato delle stanze, turni, validazione, traduzione, falsi, punteggi) vive in `lib/game/` ed è servito da `server.ts` nello stesso processo di Next.
 - Convenzioni di naming:
   - File App Router: `layout.tsx`, `page.tsx`, `route.ts`
   - Componenti: file lowercase, componente PascalCase (es. `button.tsx` → `Button`)
@@ -28,7 +31,7 @@ inclusion: always
   - Test: `*.test.ts` / `*.test.tsx`, collocati accanto al sorgente
 - Note di architettura:
   - Server components per default; `"use client"` solo quando servono stato o effetti.
-  - Route API per endpoint semplici; server actions per le mutazioni.
+  - Il traffico di gioco passa dal WebSocket di `server.ts`, non da route handler Next (girano in istanze di modulo separate e non condividerebbero lo store in memoria).
   - Stato e punteggi autoritativi lato server: il server marca il timestamp della rivelazione delle opzioni e calcola i punteggi scalati per velocità; i client inviano intenzioni, non esiti.
   - La risposta corretta non rivelata non deve trapelare ai client prima della rivelazione.
   - Nickname e avatar persistiti nel `sessionStorage` del browser e inviati alla riconnessione; nessun account utente persistente.
