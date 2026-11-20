@@ -1,0 +1,14 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Documentation Sync Check",
+      "trigger": "PostFileSave",
+      "matcher": ".kiro/steering/game-rules.md$",
+      "action": {
+        "type": "agent",
+        "prompt": "Il file game-rules.md e stato modificato. Verifica che: (1) testing-strategy.md copra ancora tutti gli invarianti elencati in game-rules.md (invarianti 1-10), (2) la tabella punteggi in docs/scoring-invariants.md sia allineata con la tabella in game-rules.md, (3) se sono stati aggiunti nuovi casi limite, questi siano anche in testing-strategy.md. Elenca i documenti che richiedono aggiornamento senza modificarli autonomamente."
+      }
+    }
+  ]
+}

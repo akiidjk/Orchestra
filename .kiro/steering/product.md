@@ -2,6 +2,7 @@
 inclusion: always
 ---
 
+<<<<<<< HEAD
 # Uordz — prodotto, dominio e UX
 
 ## Identità del prodotto
@@ -126,3 +127,46 @@ Senza richiesta esplicita, non aggiungere:
 - liste di parole o mazzi personalizzati;
 - app mobile nativa;
 - matchmaking per abilità.
+=======
+# Product — Orchestra
+
+## Visione
+
+Orchestra è un gioco multiplayer di indovinelli linguistici in tempo reale. A ogni turno il Game Master sceglie una parola; il sistema genera automaticamente cinque opzioni nella lingua target (una traduzione corretta e quattro false convincenti). I giocatori gareggiano a rispondere il più velocemente possibile: risposta giusta e velocità determinano il punteggio.
+
+## Tagline
+
+*"Can you hear the right word?"*
+
+## Utenti
+
+| Ruolo | Descrizione |
+|-------|-------------|
+| Game Master (direttore) | Sceglie una parola valida nel proprio turno. Non indovina: guadagna punti solo se nessuno trova la risposta corretta. |
+| Player (giocatore) | Vede le cinque opzioni e sceglie la traduzione corretta il più velocemente possibile. |
+
+## Obiettivi del prodotto
+
+- Partite veloci e caotiche (3–7 minuti) con 2–8 partecipanti.
+- Nessun account: nickname + avatar persistono nella sessione del browser.
+- Stanze pubbliche (open lobby) e private (codice 6 caratteri).
+- Esperienza competitiva ed educativa: si imparano parole senza che sembri una lezione.
+
+## Flusso di gioco (un turno)
+
+1. Il Game Master ha **30 secondi** per digitare una parola valida e confermarla. Il sistema la valida in tempo reale contro un dizionario. Se scade il tempo o il GM salta, il sistema genera automaticamente una parola valida.
+2. Il sistema costruisce il ballot: traduzione corretta nella lingua target + 4 opzioni false plausibili (pseudo-traduzioni morfologicamente simili).
+3. Le cinque opzioni appaiono **simultaneamente** per tutti i giocatori. Inizia il countdown (default 60 secondi).
+4. I giocatori scelgono. La risposta corretta vale di più se arriva prima: scala scorrevole nel tempo.
+5. Il sistema rivela la risposta corretta e assegna i punti. Il turno passa al giocatore successivo.
+
+Dopo l'ultimo round: podio con i primi tre giocatori e classifica finale.
+
+## Regole critiche (non negoziabili)
+
+- La validazione della parola avviene **server-side** prima che il ballot venga costruito.
+- Il punteggio di velocità è calcolato **server-side** dal momento in cui le opzioni appaiono sullo schermo, non dal momento in cui il client riceve il ballot.
+- Una risposta sbagliata **blocca il giocatore** per il resto del turno.
+- Il Game Master **non indovina** nel proprio turno.
+- Stanze inattive scadono dopo **24 ore**.
+>>>>>>> 52a31ea (LAVITA)

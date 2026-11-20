@@ -2,6 +2,7 @@
 inclusion: always
 ---
 
+<<<<<<< HEAD
 # Uordz — stack tecnico
 
 ## Panoramica tecnica (da DESIGN.md)
@@ -46,3 +47,38 @@ Il backend realtime Node/Node con WebSocket descritto in DESIGN.md **fa parte de
 ## Health check
 
 `GET /api/health` → `{ "status": "ok" }`
+=======
+# Tech — InGliSc!
+
+## Stack
+
+- **Framework:** Next.js 15 (App Router), React 19, TypeScript strict
+- **Styling:** Tailwind CSS v4 via `@tailwindcss/postcss`
+- **Real-time:** WebSocket (da definire) per sincronizzazione fasi di gioco
+- **Integrazione esterna:** Wiktionary REST API (`https://en.wiktionary.org/api/rest_v1/`)
+- **Package manager:** npm (lockfile: `package-lock.json`)
+- **Runtime:** Node.js (LTS raccomandato: 22.x)
+
+## Comandi
+
+- Install: `npm install`
+- Dev: `npm run dev` → http://localhost:3000
+- Build: `npm run build`
+- Start prod: `npm run start`
+- Lint: `npm run lint`
+- Typecheck: `npm run typecheck`
+- Test: `npm test`
+
+## Configurazioni chiave
+
+- **Tailwind v4:** `@import "tailwindcss"` in `app/globals.css`; content auto-detected, nessun `tailwind.config.ts`.
+- **Path alias:** `@/*` → repo root (in `tsconfig.json`).
+- **TypeScript:** strict mode, `moduleResolution: bundler`.
+- **API health:** GET `/api/health` → `{ "status": "ok" }`.
+
+## Vincoli
+
+- `lib/domain/` e `lib/engine/` devono rimanere privi di dipendenze da Node.js, Next.js o browser API — testabili in isolamento con un runner puro (Vitest).
+- Timeout per chiamate Wiktionary: 3 secondi.
+- Nessuna chiave API esterna richiesta per la versione base.
+>>>>>>> 52a31ea (LAVITA)
