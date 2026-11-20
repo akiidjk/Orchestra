@@ -1,0 +1,16 @@
+{
+  "enabled": true,
+  "name": "Fake Word Plausibility Audit",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "lib/game/words.ts",
+      "lib/game/dictionary.ts"
+    ]
+  },
+  "then": {
+    "type": "runCommand",
+    "command": "npm test -- --run lib/game/words.test.ts -t 'plausibility audit' 2>&1 | tail -25"
+  }
+}

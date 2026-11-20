@@ -1,0 +1,16 @@
+{
+  "enabled": true,
+  "name": "Zero-Leak Payload Guard",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "lib/game/**/*.ts",
+      "server.ts"
+    ]
+  },
+  "then": {
+    "type": "runCommand",
+    "command": "npm test -- --run lib/game/rooms.test.ts -t 'zero-leak' 2>&1 | tail -25"
+  }
+}

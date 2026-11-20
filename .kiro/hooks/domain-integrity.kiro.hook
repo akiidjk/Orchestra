@@ -1,0 +1,16 @@
+{
+  "enabled": true,
+  "name": "Domain Integrity Check",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "lib/game/**/*.ts",
+      ".kiro/steering/domain-model.md"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Un file di dominio o domain-model.md e stato modificato. Verifica che: (1) tutti gli invarianti elencati in .kiro/steering/game-rules.md siano ancora rispettati nel codice (Room 2-8 giocatori, GM non risponde, ballot 5 opzioni distinte, timestamp server-side), (2) le entita in domain-model.md corrispondano ai tipi TypeScript in lib/domain/, (3) nessuna nuova dipendenza da framework sia stata introdotta in lib/domain/ o lib/engine/. Segnala qualsiasi discrepanza trovata senza correggerla autonomamente."
+  }
+}

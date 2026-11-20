@@ -8,6 +8,7 @@ export interface Prompt {
   lang: Lang;
 }
 
+
 const col = (l: Lang) => LANGS.indexOf(l);
 const norm = (s: string) => s.normalize("NFKC").trim().toLocaleLowerCase();
 

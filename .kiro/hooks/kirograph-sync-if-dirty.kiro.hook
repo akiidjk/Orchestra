@@ -1,0 +1,12 @@
+{
+  "enabled": true,
+  "name": "KiroGraph Sync on Agent Stop",
+  "version": "1",
+  "when": {
+    "type": "agentStop"
+  },
+  "then": {
+    "type": "runCommand",
+    "command": "kirograph sync --quiet --background >/dev/null 2>&1 || true"
+  }
+}

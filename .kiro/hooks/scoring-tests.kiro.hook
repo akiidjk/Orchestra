@@ -1,0 +1,15 @@
+{
+  "enabled": true,
+  "name": "Scoring Tests on Engine Change",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "lib/game/room.ts"
+    ]
+  },
+  "then": {
+    "type": "runCommand",
+    "command": "npm test -- --run lib/game/room.test.ts -t scoring"
+  }
+}
